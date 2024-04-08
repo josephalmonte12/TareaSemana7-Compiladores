@@ -1,0 +1,111 @@
+package codigo;
+
+import java_cup.runtime.Symbol;
+import codigo.Symbol;
+import codigo.SymbolTable;
+
+parser code {
+    private Symbol s;
+    SymbolTable symbolTable = new SymbolTable();
+
+    public void syntax_error(Symbol s) {
+        this.s = s;
+    }
+
+    public Symbol getS() {
+        return this.s;
+    }
+
+    private String getCurrentScope() {
+        return "global"; // Aquí se define el alcance actual
+    }
+
+    private void reportError(String message) {
+        System.err.println(message); // Manejo de errores
+    }
+};
+
+/* Tokens */
+terminal Linea, Comillas, T_dato, Int, Cadena, If, Else, Do, While, For,
+         Igual, Suma, Resta, Multiplicacion, Division, Op_logico, Op_relacional,
+         Op_atribucion, Op_incremento, Op_booleano, Parentesis_a, Parentesis_c,
+         Llave_a, Llave_c, Corchete_a, Corchete_c, Main, P_coma, Identificador,
+         Numero, Printf, Scanf, ERROR; // Añadido el terminal Printf
+
+// A continuación de esta línea, continúan las reglas de producción
+/* Punto de partida */
+start with INICIO;
+
+%%
+
+/* Reglas de producción */
+
+/* Definición de una función principal (main) */
+INICIO ::=
+    T_dato Main Parentesis_a Parentesis_c Llave_a BLOQUE_SENTENCIAS Llave_c
+    ;
+
+/* Bloque de sentencias */
+BLOQUE_SENTENCIAS ::=
+    BLOQUE_SENTENCIAS SENTENCIA
+    | SENTENCIA
+    ;
+
+/* Sentencias individuales dentro de un bloque */
+SENTENCIA ::=
+    DECLARACION_VAR
+    | ASIGNACION
+    | CONDICIONAL
+    | BUCLE
+    | LLAMADA_FUNCION
+    | Printf Parentesis_a EXPRESION Parentesis_c P_coma
+    | Scanf Parentesis_a EXPRESION Parentesis_c P_coma
+    | Linea
+    ;
+
+/* Otras reglas (DECLARACION_VAR, ASIGNACION, CONDICIONAL, BUCLE, etc.) aquí */
+
+/* Expresión dentro de una sentencia */
+EXPRESION ::=
+    Numero
+    | Identificador
+    | Cadena
+    | EXPRESION Op_logico EXPRESION
+    | EXPRESION Op_relacional EXPRESION
+    | EXPRESION Suma EXPRESION
+    | EXPRESION Resta EXPRESION
+    | EXPRESION Multiplicacion EXPRESION
+    | EXPRESION Division EXPRESION
+    | Parentesis_a EXPRESION Parentesis_c
+    ;
+
+/* Continuación con otras reglas de producción... */
+/* Estructuras condicionales */
+CONDICIONAL ::=
+    If Parentesis_a EXPRESION Parentesis_c Llave_a BLOQUE_SENTENCIAS Llave_c
+    | If Parentesis_a EXPRESION Parentesis_c Llave_a BLOQUE_SENTENCIAS Llave_c Else Llave_a BLOQUE_SENTENCIAS Llave_c
+    ;
+
+/* Bucles */
+BUCLE ::=
+    While Parentesis_a EXPRESION Parentesis_c Llave_a BLOQUE_SENTENCIAS Llave_c
+    | For Parentesis_a DECLARACION_VAR EXPRESION P_coma ASIGNACION Parentesis_c Llave_a BLOQUE_SENTENCIAS Llave_c
+    ;
+
+/* Llamadas a funciones */
+LLAMADA_FUNCION ::=
+    Identificador Parentesis_a Parentesis_c P_coma
+    {
+        // Acciones para manejar llamadas a funciones
+    }
+    | Identificador Parentesis_a EXPRESIONES Parentesis_c P_coma
+    {
+        // Acciones para manejar llamadas a funciones con argumentos
+    }
+    ;
+
+/* Lista de expresiones para argumentos de funciones */
+EXPRESIONES ::=
+    EXPRESIONES Coma EXPRESION
+    | EXPRESION
+    ;
